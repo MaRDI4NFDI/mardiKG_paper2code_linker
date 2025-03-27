@@ -1,0 +1,26 @@
+[
+  {
+    "paper_url": "https://paperswithcode.com/paper/efficient-leave-one-out-cross-validation-for",
+    "paper_title": "Efficient leave-one-out cross-validation for Bayesian non-factorized normal and Student-t models",
+    "paper_arxiv_id": "1810.10559",
+    "paper_url_abs": "https://arxiv.org/abs/1810.10559v5",
+    "paper_url_pdf": "https://arxiv.org/pdf/1810.10559v5.pdf",
+    "repo_url": "https://github.com/paul-buerkner/psis-non-factorized-paper",
+    "is_official": true,
+    "mentioned_in_paper": true,
+    "mentioned_in_github": false,
+    "framework": "none"
+  },
+  {
+    "paper_url": "https://paperswithcode.com/paper/automatic-post-editing-of-machine-translation",
+    "paper_title": "Automatic Post-Editing of Machine Translation: A Neural Programmer-Interpreter Approach",
+    "paper_arxiv_id": null,
+    "paper_url_abs": "https://aclanthology.org/D18-1341",
+    "paper_url_pdf": "https://aclanthology.org/D18-1341.pdf",
+    "repo_url": "https://github.com/trangvu/ape-npi",
+    "is_official": false,
+    "mentioned_in_paper": false,
+    "mentioned_in_github": false,
+    "framework": "tf"
+  }
+]
