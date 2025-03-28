@@ -50,6 +50,7 @@ def search_arxiv(arxiv_id: str, paper: dict):
             "is_official": paper.get("is_official"),
             "mentioned_in_paper": paper.get("mentioned_in_paper"),
             "mentioned_in_github": paper.get("mentioned_in_github"),
+            "pwc_page": paper.get("paper_url"),
             "snippet": clean_snippet
         })
 
