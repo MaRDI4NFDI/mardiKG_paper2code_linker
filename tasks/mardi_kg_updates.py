@@ -6,18 +6,10 @@ from wikibaseintegrator import datatypes
 from wikibaseintegrator.models import References, Reference
 from wikibaseintegrator.wbi_enums import ActionIfExists
 from prefect.blocks.system import Secret
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import threading
-
-DB_LOCK = threading.Lock()
 
 
 @task
-def link_repos_to_mardi_kg(
-    db_path: str = "./data/results.db",
-    secrets_path: str = "secrets.conf",
-    max_workers: int = 5
-) -> None:
+def link_repos_to_mardi_kg(db_path: str = "./data/results.db", secrets_path: str = "secrets.conf") -> None:
     """Update MaRDI KG with repository links from stored search results in the SQLite DB.
 
     This task reads credentials, loads unprocessed records from the SQLite 'hits' table,
@@ -27,64 +19,62 @@ def link_repos_to_mardi_kg(
     Args:
         db_path (str): Path to the results database.
         secrets_path (str): Path to the secrets file.
-        max_workers (int): Number of threads to use for parallel processing.
     """
     logger = get_run_logger()
 
+    # Read username/password from file
     creds = _read_credentials(secrets_path)
     if not creds:
         logger.error("No valid credentials found. Please check '%s'", secrets_path)
         return
 
+    # Initialize MaRDI KG client
     mc = MardiClient(user=creds["user"], password=creds["password"], login_with_bot=True)
-    hits = _load_hits(db_path)
 
+    # Get items to be updated from the database
+    hits = _load_hits(db_path)
     logger.info("Loaded %d items pending MaRDI update from %s", len(hits), db_path)
 
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = {
-            executor.submit(_process_single_kg_update, hit, mc, db_path, idx + 1): hit["arxiv_id"]
-            for idx, hit in enumerate(hits)
-        }
+    # Process items: for each item, add repo information to KG item
+    for count, hit in enumerate(hits, start=1):
+        qid = hit.get("qid")
+        repo_url = hit.get("repo_url")
+        pwc_url = hit.get("pwc_page")
 
-        for future in as_completed(futures):
-            arxiv_id = futures[future]
-            try:
-                future.result()
-            except Exception as e:
-                logger.error("❌ Failed to process %s: %s", arxiv_id, e)
+        mentioned_in_paper = hit.get("mentioned_in_paper", False)
+        mentioned_in_github = hit.get("mentioned_in_github", False)
 
+        harvested_from = (
+            "publication" if mentioned_in_paper else
+            "repository README" if mentioned_in_github else
+            "unknown"
+        )
 
-def _process_single_kg_update(hit: Dict, mc: MardiClient, db_path: str, count: int):
-    logger = get_run_logger()
-
-    qid = hit.get("qid")
-    repo_url = hit.get("repo_url")
-    pwc_url = hit.get("pwc_page")
-
-    mentioned_in_paper = hit.get("mentioned_in_paper", False)
-    mentioned_in_github = hit.get("mentioned_in_github", False)
-
-    harvested_from = (
-        "publication" if mentioned_in_paper else
-        "repository README" if mentioned_in_github else
-        "unknown"
-    )
-
-    if qid and repo_url and pwc_url:
-        logger.info(f"[{count}] Linking {qid} with {repo_url}")
-        _update_kg_item_with_repo(mc, qid, repo_url, pwc_url, harvested_from)
-        with DB_LOCK:
+        # Update actual KG item and update item in local DB
+        if qid and repo_url and pwc_url:
+            logger.info(f"[{count}] Linking {qid} with {repo_url}")
+            _update_kg_item_with_repo(mc, qid, repo_url, pwc_url, harvested_from)
             _mark_updated(db_path, hit["arxiv_id"])
-    else:
-        logger.warning(f"[{count}] Skipping due to missing fields: {hit}")
+        else:
+            logger.warning(f"[{count}] Skipping due to missing fields: {hit}")
 
 
 def _read_credentials(path: str) -> Optional[Dict[str, str]]:
+    """Read user credentials either from prefect server (mardi-kg-user / mardi-kg-password)
+    or from a secrets file.
+
+    Args:
+        path (str): Path to the secrets file.
+
+    Returns:
+        Optional[Dict[str, str]]: Dictionary with 'user' and 'password' or None if invalid/missing.
+    """
+    # Try first the built-in mechanism
     secrets = _read_credentials_from_prefect()
     if secrets is not None:
         return secrets
 
+    # Try to get from file
     try:
         with open(path) as f:
             creds = dict(
@@ -103,11 +93,19 @@ def _read_credentials_from_prefect() -> Optional[Dict[str, str]]:
         user = Secret.load("mardi-kg-user").get()
         password = Secret.load("mardi-kg-password").get()
         return {"user": user, "password": password}
-    except Exception:
+    except Exception as e:
         return None
 
 
 def _load_hits(db_path: str) -> List[Dict]:
+    """Load unprocessed hits from the SQLite DB.
+
+    Args:
+        db_path (str): Path to the SQLite database.
+
+    Returns:
+        List[Dict]: List of hit entries that have not yet been marked as updated.
+    """
     try:
         conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row
@@ -122,6 +120,12 @@ def _load_hits(db_path: str) -> List[Dict]:
 
 
 def _mark_updated(db_path: str, arxiv_id: str) -> None:
+    """Mark a specific arXiv ID entry as updated in the SQLite database.
+
+    Args:
+        db_path (str): Path to the SQLite database.
+        arxiv_id (str): The arXiv ID of the hit to mark as updated.
+    """
     try:
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
@@ -134,19 +138,40 @@ def _mark_updated(db_path: str, arxiv_id: str) -> None:
 
 def _update_kg_item_with_repo(mc: MardiClient, QID: str, repo_url: str,
                               repo_reference_url: str, harvested_from_label: str) -> None:
+    """Add or update a repository link (P1687) on a MaRDI KG item.
+
+    Args:
+        mc (MardiClient): Authenticated MardiClient instance.
+        QID (str): QID of the MaRDI KG item.
+        repo_url (str): URL of the companion code repository.
+        repo_reference_url (str): PapersWithCode reference page URL.
+        harvested_from_label (str): Description of the source ('publication', 'README', etc.).
+    """
     item: MardiItem = mc.item.get(entity_id=QID)
 
+    # Prepare reference:
+    #   - Reference: P1688 (PapersWithCode reference URL) = repo_reference_url
+    #   - Reference: P1689 (extracted from) = harvested_from_label
+    # See also: https://github.com/LeMyst/WikibaseIntegrator?tab=readme-ov-file#manipulate-claim-add-references
     new_references = References()
     new_reference = Reference()
+
     new_reference.add(datatypes.String(prop_nr='P1688', value=repo_reference_url))
     new_reference.add(datatypes.String(prop_nr='P1689', value=harvested_from_label))
+
     new_references.add(new_reference)
 
+    # Prepare statement:
+    #   - Property: P1687 (has companion code repository)
+    #   - Value: url_to_repo
     new_claim = datatypes.String(
         prop_nr='P1687',
         value=repo_url,
         references=new_references
     )
 
+    # Add the claim
     item.claims.add(new_claim, action_if_exists=ActionIfExists.REPLACE_ALL)
+
+    # Write the new data
     item.write()
