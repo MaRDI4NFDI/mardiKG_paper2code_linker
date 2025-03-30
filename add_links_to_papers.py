@@ -141,6 +141,7 @@ def main():
     count = 0
     for hit in hits:
         count += 1
+
         qid = hit.get("qid")
         repo_url = hit.get("repo_url")
         pwc_url = hit.get("pwc_page")

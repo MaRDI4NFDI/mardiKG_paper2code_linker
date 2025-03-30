@@ -6,7 +6,7 @@ import re
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-JSON_INPUT = "./data/links_pwc.json"
+JSON_INPUT = "./data/links.json"
 JSON_OUTPUT = "./data/results.json"
 
 def search_arxiv(arxiv_id: str, paper: dict):
