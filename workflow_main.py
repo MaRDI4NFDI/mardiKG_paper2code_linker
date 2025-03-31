@@ -4,6 +4,12 @@ from tasks.storage import init_db
 from tasks.download import download_and_unzip_links_file
 from tasks.mardi_kg_updates import link_repos_to_mardi_kg
 from pathlib import Path
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
 
 DATA_PATH = "./data"
 DB_PATH = DATA_PATH + "/results.db"
@@ -14,6 +20,7 @@ MAX_WORKERS = 50
 
 @flow
 def process_papers(batch_size=BATCH_SIZE, max_workers=MAX_WORKERS):
+
     logger = get_run_logger()
 
     # Check whether data path exists
@@ -38,8 +45,7 @@ def process_papers(batch_size=BATCH_SIZE, max_workers=MAX_WORKERS):
 
     # Final step: Link results to MaRDI KG
     logger.info("Starting KG update...")
-    link_repos_to_mardi_kg.submit(db_path=DB_PATH)
-
+    link_repos_to_mardi_kg(db_path=DB_PATH)
 
 
 if __name__ == "__main__":

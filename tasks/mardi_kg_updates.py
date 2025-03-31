@@ -1,6 +1,9 @@
+import logging
 import sqlite3
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Dict, Optional
-from prefect import task, get_run_logger
+from prefect import task, get_run_logger, flow
 from mardiclient import MardiClient, MardiItem
 from wikibaseintegrator import datatypes
 from wikibaseintegrator.models import References, Reference
@@ -36,27 +39,63 @@ def link_repos_to_mardi_kg(db_path: str = "./data/results.db", secrets_path: str
     logger.info("Loaded %d items pending MaRDI update from %s", len(hits), db_path)
 
     # Process items: for each item, add repo information to KG item
-    for count, hit in enumerate(hits, start=1):
-        qid = hit.get("qid")
-        repo_url = hit.get("repo_url")
-        pwc_url = hit.get("pwc_page")
+    # (running tasks concurrently using Prefect-native mapping)
 
-        mentioned_in_paper = hit.get("mentioned_in_paper", False)
-        mentioned_in_github = hit.get("mentioned_in_github", False)
+    start = time.perf_counter()
 
-        harvested_from = (
-            "publication" if mentioned_in_paper else
-            "repository README" if mentioned_in_github else
-            "unknown"
-        )
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_hit = {
+            executor.submit(_process_hit.fn, hit, db_path, mc): hit
+            for hit in hits
+        }
 
-        # Update actual KG item and update item in local DB
-        if qid and repo_url and pwc_url:
-            logger.info(f"[{count}] Linking {qid} with {repo_url}")
-            _update_kg_item_with_repo(mc, qid, repo_url, pwc_url, harvested_from)
-            _mark_updated(db_path, hit["arxiv_id"])
-        else:
-            logger.warning(f"[{count}] Skipping due to missing fields: {hit}")
+        for future in as_completed(future_to_hit):
+            hit = future_to_hit[future]
+            try:
+                future.result()
+            except Exception as e:
+                logger.error(f"Error while processing hit {hit.get('arxiv_id', '?')}: {e}")
+                raise  # optionally re-raise to fail the flow
+
+    duration = time.perf_counter() - start
+    logger.info("Finished updating %d items in %.2f seconds", len(hits), duration)
+
+
+def _process_hit(hit: Dict, db_path: str, mc: MardiClient) -> None:
+    """Process a single hit and update the corresponding MaRDI KG item.
+
+    This function checks the presence of necessary fields, constructs a reference,
+    adds it to the KG item, and marks the item as updated in the local database.
+
+    Args:
+        hit (Dict): A dictionary containing hit information (qid, repo_url, etc.).
+        db_path (str): Path to the SQLite database for marking the entry as updated.
+        mc (MardiClient): An authenticated MaRDI KG client instance.
+    """
+
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+
+    qid = hit.get("qid")
+    repo_url = hit.get("repo_url")
+    pwc_url = hit.get("pwc_page")
+    mentioned_in_paper = hit.get("mentioned_in_paper", False)
+    mentioned_in_github = hit.get("mentioned_in_github", False)
+
+    harvested_from = (
+        "publication" if mentioned_in_paper else
+        "repository README" if mentioned_in_github else
+        "unknown"
+    )
+
+    # Update actual KG item and update item in local DB
+    if qid and repo_url and pwc_url:
+        logger.info(f"Linking {qid} with {repo_url}")
+        _update_kg_item_with_repo(mc, qid, repo_url, pwc_url, harvested_from)
+        _mark_updated(db_path, hit["arxiv_id"])
+    else:
+        logger.warning(f"Skipping due to missing fields: {hit}")
+
 
 
 def _read_credentials(path: str) -> Optional[Dict[str, str]]:
