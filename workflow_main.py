@@ -45,7 +45,10 @@ def process_papers(batch_size=BATCH_SIZE, max_workers=MAX_WORKERS):
 
     # Final step: Link results to MaRDI KG
     logger.info("Starting KG update...")
-    link_repos_to_mardi_kg(db_path=DB_PATH)
+    link_repos_to_mardi_kg.submit(
+        db_path=DB_PATH,
+        max_workers=max_workers
+    ).wait()
 
 
 if __name__ == "__main__":

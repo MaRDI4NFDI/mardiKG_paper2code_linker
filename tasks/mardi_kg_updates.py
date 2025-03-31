@@ -12,7 +12,7 @@ from prefect.blocks.system import Secret
 
 
 @task
-def link_repos_to_mardi_kg(db_path: str = "./data/results.db", secrets_path: str = "secrets.conf") -> None:
+def link_repos_to_mardi_kg(db_path: str = "./data/results.db", max_workers=10, secrets_path: str = "secrets.conf") -> None:
     """Update MaRDI KG with repository links from stored search results in the SQLite DB.
 
     This task reads credentials, loads unprocessed records from the SQLite 'hits' table,
@@ -21,6 +21,7 @@ def link_repos_to_mardi_kg(db_path: str = "./data/results.db", secrets_path: str
 
     Args:
         db_path (str): Path to the results database.
+        max_workers (int): Max number of concurrent workers.
         secrets_path (str): Path to the secrets file.
     """
     logger = get_run_logger()
@@ -43,7 +44,7 @@ def link_repos_to_mardi_kg(db_path: str = "./data/results.db", secrets_path: str
 
     start = time.perf_counter()
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers) as executor:
         future_to_hit = {
             executor.submit(_process_hit.fn, hit, db_path, mc): hit
             for hit in hits
@@ -62,10 +63,8 @@ def link_repos_to_mardi_kg(db_path: str = "./data/results.db", secrets_path: str
 
 
 def _process_hit(hit: Dict, db_path: str, mc: MardiClient) -> None:
-    """Process a single hit and update the corresponding MaRDI KG item.
-
-    This function checks the presence of necessary fields, constructs a reference,
-    adds it to the KG item, and marks the item as updated in the local database.
+    """Process a single "hit" entry. This updates the KG item,
+    and marks the item as updated in the local database.
 
     Args:
         hit (Dict): A dictionary containing hit information (qid, repo_url, etc.).
@@ -128,6 +127,11 @@ def _read_credentials(path: str) -> Optional[Dict[str, str]]:
 
 
 def _read_credentials_from_prefect() -> Optional[Dict[str, str]]:
+    """Read credentials using Prefect's block system.
+
+    Returns:
+        Optional[Dict[str, str]]: Dictionary with 'user' and 'password', or None if secrets could not be loaded.
+    """
     try:
         user = Secret.load("mardi-kg-user").get()
         password = Secret.load("mardi-kg-password").get()
