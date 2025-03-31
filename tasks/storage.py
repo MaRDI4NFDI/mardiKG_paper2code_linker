@@ -5,13 +5,13 @@ from prefect import task, get_run_logger
 
 
 @task
-def init_db(path: str = "data/results.db") -> None:
+def init_db(path_and_file: str = "data/results.db") -> None:
     """Initialize the SQLite database with the required tables.
 
     Args:
-        path (str): Path to the SQLite database file.
+        path_and_file (str): Path to the SQLite database file.
     """
-    conn = sqlite3.connect(path)
+    conn = sqlite3.connect(path_and_file)
     cur = conn.cursor()
 
     cur.execute("""
@@ -35,14 +35,14 @@ def init_db(path: str = "data/results.db") -> None:
 
 
 @task
-def insert_hits(hits: List[Dict], path: str = "data/results.db") -> None:
+def insert_hits(hits: List[Dict], path_and_file: str = "data/results.db") -> None:
     """Insert or update a list of search result hits into the database.
 
     Args:
         hits (List[Dict]): A list of hit records to insert.
-        path (str): Path to the SQLite database file.
+        path_and_file (str): Path to the SQLite database file.
     """
-    conn = sqlite3.connect(path)
+    conn = sqlite3.connect(path_and_file)
     cur = conn.cursor()
 
     for hit in hits:
