@@ -5,6 +5,9 @@ import boto3
 import lakefs_sdk
 from botocore.config import Config
 from lakefs_sdk import Configuration, models, HealthCheckApi, ObjectsApi, AuthApi
+from typing import List
+from minio import Minio
+import os
 
 
 class LakeClient:
@@ -30,6 +33,14 @@ class LakeClient:
             aws_secret_access_key=_password,
             region_name='us-east-1',
             config=Config(s3={'addressing_style': 'path'})
+        )
+
+        # Init MinIO-Client
+        self.minio_client = Minio(
+            endpoint = _host.replace("https://", "").replace("http://", ""),
+            access_key=_user,
+            secret_key=_password,
+            secure=True
         )
 
 
@@ -97,7 +108,7 @@ class LakeClient:
             print(f"[list_objects] Error: {e}")
             return None
 
-    def upload_to_lakefs(self, _file_paths: List[str], _repo: str, _branch: str, _lakefs_repo_subpath: str = "") -> List[int]:
+    def upload_to_lakefs_boto(self, _file_paths: List[str], _repo: str, _branch: str, _lakefs_repo_subpath: str = "") -> List[int]:
         """
         Upload files using boto3.
 
@@ -125,6 +136,51 @@ class LakeClient:
                     print(f"[upload_to_lakefs] Error: {e}")
                     results.append(-1)
         return results
+
+
+    def upload_to_lakefs(
+            self,
+            _file_paths: List[str],
+            _repo: str,
+            _branch: str,
+            _lakefs_repo_subpath: str = ""
+    ) -> List[int]:
+        """
+        Upload files to LakeFS using MinIO client.
+
+        Returns:
+            List[int]: HTTP status codes for uploads (200 on success, -1 on error).
+        """
+        results = []
+
+        for file_path in _file_paths:
+            try:
+                file_size = os.stat(file_path).st_size
+                filename = os.path.basename(file_path)
+
+                if _lakefs_repo_subpath:
+                    key = f"{_branch}/{_lakefs_repo_subpath.strip('/')}/{filename}"
+                else:
+                    key = f"{_branch}/{filename}"
+
+                print(f"Uploading key={key} to repo={_repo}...")
+
+                with open(file_path, 'rb') as f:
+                    self.minio_client.put_object(
+                        bucket_name=_repo,
+                        object_name=key,
+                        data=f,
+                        length=file_size
+                    )
+                    print("Upload done: 200")
+                    results.append(200)
+
+            except Exception as e:
+                print(f"[upload_to_lakefs_minio] Error uploading {file_path}: {e}")
+                results.append(-1)
+
+        return results
+
 
     def commit_to_lakefs(self, repo: str, branch: str, msg: str, metadata: Optional[dict] = None) -> str:
         """
@@ -183,8 +239,8 @@ if __name__ == "__main__":
 
     # --- Setup ---
     host_url = "https://lake-bioinfmed.zib.de"
-    username = "xxx"
-    password = "xxx"
+    username = "x"
+    password = "x"
 
     client = LakeClient(host_url, username, password)
     repo = "sandbox"
