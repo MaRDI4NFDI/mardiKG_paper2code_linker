@@ -1,5 +1,9 @@
 # Run this for CLOUD execution:
 #   prefect cloud login
+# Once deployed, add a schedule:
+#   * Go to "Deployments"
+#   * Click on the workflow name
+#   * Click on "+ Schedule" (top right corner)
 
 from prefect import flow
 
