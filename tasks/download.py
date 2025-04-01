@@ -1,9 +1,14 @@
 import gzip
 import shutil
 import os
+from pathlib import Path
+
 import requests
 from datetime import datetime
 from prefect import task, get_run_logger
+
+from utils.LakeClient import LakeClient
+from utils.PrefectHelper import _read_lakefs_credentials
 
 
 @task
@@ -46,3 +51,35 @@ def download_and_unzip_links_file(
 
     logger.info("Download complete: %s", output_path)
     return output_path
+
+
+
+@task
+def download_db( db_path_and_file, lakefs_url: str, lakefs_repo: str, lakefs_path_and_file:str, secrets_path: str = "secrets.conf" ) -> None:
+
+    logger = get_run_logger()
+
+    creds = _read_lakefs_credentials(secrets_path)
+    if not creds:
+        logger.error("No valid credentials found. Please check '%s'", secrets_path)
+        return
+
+    # Initialize LakeFS client
+    lakefs_user = creds["user"]
+    lakefs_pwd = creds["password"]
+    client = LakeClient(lakefs_url, lakefs_user, lakefs_pwd)
+
+    if client.file_exists(lakefs_repo, "main", lakefs_path_and_file):
+        logger.info("Found DB file at lakeFS. Downloading...")
+        content = client.load_file(lakefs_repo, "main", lakefs_path_and_file)
+        if not content:
+            logger.error("Failed downloading DB file from lakeFS.")
+            raise Exception("Failed downloading DB file from lakeFS.")
+
+    # Save content to local file
+    db_path = Path(db_path_and_file)
+    with open(db_path, "wb") as f:
+        f.write(content)
+
+    logger.info("Successfully saved DB file to '%s'", db_path)
+

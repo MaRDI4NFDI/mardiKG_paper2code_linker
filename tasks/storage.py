@@ -1,7 +1,6 @@
 import sqlite3
-from typing import Set
 from typing import List, Dict
-from prefect import task, get_run_logger
+from prefect import task
 
 
 @task
@@ -31,7 +30,6 @@ def init_db(path_and_file: str = "data/results.db") -> None:
 
     conn.commit()
     conn.close()
-
 
 
 @task
