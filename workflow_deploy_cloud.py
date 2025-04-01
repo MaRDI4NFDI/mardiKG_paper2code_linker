@@ -1,3 +1,6 @@
+# Run this for CLOUD execution:
+#   prefect cloud login
+
 from prefect import flow
 
 if __name__ == "__main__":
