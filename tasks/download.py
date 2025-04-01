@@ -2,13 +2,14 @@ import gzip
 import shutil
 import os
 from pathlib import Path
+from typing import Optional, Dict
 
 import requests
 from datetime import datetime
 from prefect import task, get_run_logger
 
 from utils.LakeClient import LakeClient
-from utils.PrefectHelper import _read_lakefs_credentials
+from utils.PrefectHelper import read_lakefs_credentials_from_prefect
 
 
 @task
@@ -56,7 +57,25 @@ def download_and_unzip_links_file(
 
 @task
 def download_db( db_path_and_file, lakefs_url: str, lakefs_repo: str, lakefs_path_and_file:str, secrets_path: str = "secrets.conf" ) -> None:
+    """
+    Downloads the database file from a previous run of the flow from a lakeFS repository and
+    saves it locally.
 
+    This function checks whether the specified file exists in the given lakeFS repository and,
+    if found, downloads its content and writes it to the provided local path. Credentials are
+    retrieved from Prefect secret blocks or a local secrets file.
+
+    Args:
+        db_path_and_file (str): The local file path (including filename) where the database should be saved.
+        lakefs_url (str): The URL of the lakeFS server to connect to.
+        lakefs_repo (str): The name of the lakeFS repository where the file is stored.
+        lakefs_path_and_file (str): The path (in lakeFS) to the file to be downloaded.
+        secrets_path (str, optional): Path to a fallback local secrets file if Prefect block secrets are unavailable. Defaults to "secrets.conf".
+
+    Raises:
+        Exception: If the file exists in lakeFS but content could not be retrieved.
+        FileNotFoundError: If the file does not exist in the specified lakeFS repository.
+    """
     logger = get_run_logger()
 
     creds = _read_lakefs_credentials(secrets_path)
@@ -83,3 +102,34 @@ def download_db( db_path_and_file, lakefs_url: str, lakefs_repo: str, lakefs_pat
 
     logger.info("Successfully saved DB file to '%s'", db_path)
 
+
+def _read_lakefs_credentials(path: str = "secrets.conf") -> Optional[Dict[str, str]]:
+    """Read user credentials either from prefect server (lakefs-user / lakefs-password)
+    or from a secrets file.
+
+    Args:
+        path (str): Path to the secrets file.
+
+    Returns:
+        Optional[Dict[str, str]]: Dictionary with 'user' and 'password' or None if invalid/missing.
+    """
+    # Try first the built-in mechanism
+    secrets = read_lakefs_credentials_from_prefect()
+    if secrets is not None:
+        return secrets
+
+    # Try to get from file
+    try:
+        with open(path, encoding="utf-8") as f:
+            creds = {}
+            for line in f:
+                if "=" in line:
+                    key, value = line.strip().split("=", 1)
+                    creds[key.strip()] = value.strip()
+
+        if "lakefs-user" not in creds or "lakefs-password" not in creds:
+            return None
+
+        return creds
+    except Exception:
+        return None
