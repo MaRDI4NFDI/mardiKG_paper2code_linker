@@ -92,7 +92,7 @@ def process_pwc_dump(db_path: str, json_input: str, batch_size: int, max_workers
                     raise
 
         if batch_hits:
-            insert_hits.submit(batch_hits, path=db_path).wait()
+            insert_hits.submit(batch_hits, path_and_file=db_path).wait()
 
         end = time.perf_counter()
         duration = end - start

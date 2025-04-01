@@ -162,7 +162,7 @@ def _load_config() -> dict:
         f"Could not load configuration. Tried Prefect variable '{prefect_var_name}' and local file '{local_file}'."
     )
 
-def _read_lakefs_credentials(path: str) -> Optional[Dict[str, str]]:
+def _read_lakefs_credentials(path: str = "secrets.conf") -> Optional[Dict[str, str]]:
     """Read user credentials either from prefect server (lakefs-user / lakefs-password)
     or from a secrets file.
 
@@ -179,13 +179,16 @@ def _read_lakefs_credentials(path: str) -> Optional[Dict[str, str]]:
 
     # Try to get from file
     try:
-        with open(path) as f:
-            creds = dict(
-                line.strip().split("=", 1)
-                for line in f if "=" in line
-            )
+        with open(path, encoding="utf-8") as f:
+            creds = {}
+            for line in f:
+                if "=" in line:
+                    key, value = line.strip().split("=", 1)
+                    creds[key.strip()] = value.strip()
+
         if "lakefs-user" not in creds or "lakefs-password" not in creds:
             return None
+
         return creds
     except Exception:
         return None
