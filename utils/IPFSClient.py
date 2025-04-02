@@ -392,8 +392,6 @@ class IPFSClient:
             return None
 
 
-
-
 if __name__ == "__main__":
 
     logger.info("Getting credentials...")
@@ -427,11 +425,9 @@ if __name__ == "__main__":
         if client.tag_file(cid, tag_path, overwrite=True):
             logger.info(f"Tagged {cid} as {tag_path}")
 
-        if client.tag_file(cid, tag_path, overwrite=True):
-            logger.info(f"Tagged {cid} as {tag_path}")
-
         # Download the file by cid
         client.download_file(cid, "../downloaded-by-cid.md")
 
         # Download it by tag
         client.download_by_tag(tag_path, "../downloaded-by-tag.md")
+
