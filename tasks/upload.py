@@ -3,7 +3,7 @@ from utils.LakeClient import LakeClient
 from prefect import task, get_run_logger
 
 @task
-def upload_to_lakefs( db_path_and_file: str,
+def upload_to_lakefs( path_and_file: str,
                          lakefs_url: str, lakefs_repo: str, lakefs_path:str,
                          secrets_path: str = "secrets.conf" ) -> None:
     """
@@ -13,7 +13,7 @@ def upload_to_lakefs( db_path_and_file: str,
     uploads the file to the given lakeFS path, and creates a commit in the 'main' branch.
 
     Args:
-        db_path_and_file (str): The local file path (including filename) to upload.
+        path_and_file (str): The local file path (including filename) to upload.
         lakefs_url (str): The URL of the lakeFS instance.
         lakefs_repo (str): The name of the lakeFS repository to upload to.
         lakefs_path (str): The destination path in the lakeFS repository (no file name).
@@ -40,8 +40,8 @@ def upload_to_lakefs( db_path_and_file: str,
     client = LakeClient(lakefs_url, lakefs_user, lakefs_pwd)
 
     # Upload
-    logger.info(f"Uploading {db_path_and_file} to lakeFS ({lakefs_repo} -> main -> {lakefs_path})")
-    files_to_upload = [db_path_and_file]
+    logger.info(f"Uploading {path_and_file} to lakeFS ({lakefs_repo} -> main -> {lakefs_path})")
+    files_to_upload = [path_and_file]
     client.upload_to_lakefs(files_to_upload, _repo=lakefs_repo, _branch="main", _lakefs_repo_subpath=lakefs_path)
 
     # Commit

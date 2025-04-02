@@ -105,7 +105,7 @@ def process_papers(
         lakefs_path = ""  # upload to root of the repo
 
     upload_to_lakefs.submit(
-        db_path_and_file=str(db_path_and_file),
+        path_and_file=str(db_path_and_file),
         lakefs_url=lakefs_url,
         lakefs_repo=lakefs_repo,
         lakefs_path_and_file=lakefs_path).wait()
