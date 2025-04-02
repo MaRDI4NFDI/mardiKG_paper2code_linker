@@ -9,7 +9,7 @@ from datetime import datetime
 from prefect import task, get_run_logger
 
 from utils.LakeClient import LakeClient
-from utils.PrefectHelper import read_lakefs_credentials_from_prefect
+from utils.prefect_helper import read_lakefs_credentials_from_prefect
 
 
 @task
