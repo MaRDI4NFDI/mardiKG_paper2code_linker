@@ -12,7 +12,7 @@ or on the [Prefect Cloud](https://www.prefect.io/cloud).
 
 1. Downloads the latest PapersWithCode JSON dump
 2. Searches for the corresponding arXiv entries in the MaRDI KG
-3. Updates mathcing MaRDI KG items with the companion code repository information
+3. Updates matching MaRDI KG items with the companion code repository information
 
 ---
 
@@ -30,15 +30,20 @@ or on the [Prefect Cloud](https://www.prefect.io/cloud).
 
 ## Running on a Local Prefect Server
 
-#### Prepare Your local Prefect Environment (ONLY ONCE)
+_Hint: The Prefect server is automatically installed inside your virtual Python environment 
+when you installed the dependencies._
+
+
+#### Prepare Your Local Prefect Environment (ONLY ONCE)
 - Connect the server to your local environment: 
   `prefect config set PREFECT_API_URL=http://127.0.0.1:4200/api`
 - Start the server: `prefect server start`
 - Create secrets at the Prefect server (ONLY ONCE) using [Block secrets](https://docs.prefect.io/v3/develop/blocks)
 
 #### Deploy and Run 
-- Run `python workflow_deploy_local.py`
-- Go to the local web ui -> _Deployments_ -> Run the workflow
+- Deploy the workflow using: `python workflow_deploy_local.py`
+- Run the workflow either from the CLI: `prefect deployment run 'process-papers/process_papers'`
+- Or using the web ui -> _Deployments_ -> Run the workflow
 
 ## Running on a Prefect Cloud Server
 
