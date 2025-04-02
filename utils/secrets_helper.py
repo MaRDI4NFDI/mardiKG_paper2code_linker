@@ -51,7 +51,7 @@ def _read_lakefs_credentials_from_prefect() -> Optional[Dict[str, str]]:
         return None
 
 
-def read_mardikg_credentials(path: str) -> Optional[Dict[str, str]]:
+def read_mardikg_credentials(path: str = "secrets.conf") -> Optional[Dict[str, str]]:
     """Read user credentials either from prefect server (mardi-kg-user / mardi-kg-password)
     or from a secrets file.
 

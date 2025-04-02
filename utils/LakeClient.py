@@ -163,7 +163,7 @@ class LakeClient:
                 else:
                     key = f"{_branch}/{filename}"
 
-                print(f"Uploading key={key} to repo={_repo}...")
+                # print(f"Uploading key={key} to repo={_repo}...")
 
                 with open(file_path, 'rb') as f:
                     self.minio_client.put_object(
@@ -172,7 +172,7 @@ class LakeClient:
                         data=f,
                         length=file_size
                     )
-                    print("Upload done: 200")
+                    # print("Upload done: 200")
                     results.append(200)
 
             except Exception as e:
