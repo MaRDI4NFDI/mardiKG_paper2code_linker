@@ -1,3 +1,5 @@
+import socket
+
 from prefect import flow, get_run_logger
 
 from tasks.process_pwc_dump import process_pwc_dump
@@ -8,15 +10,11 @@ from tasks.upload import upload_to_lakefs
 from pathlib import Path
 import logging
 
-LOG_FILE = "process_papers.log"
+from utils.logger_helper import configure_prefect_logging_to_file
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[
-        logging.StreamHandler(),  # still print to console
-        logging.FileHandler(LOG_FILE, mode='a', encoding='utf-8')
-    ]
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
 
 # BEFORE THIS WORKFLOW CAN BE DEPLOYED TO A PREFECT SERVER:
@@ -59,7 +57,11 @@ def process_papers(
         lakefs_path_and_file (str): Path to the database file in the lakeFS repository.
     """
 
+    # Configure logging
+    logfile_name = "workflow.log.txt"
+    configure_prefect_logging_to_file( logfile_name )
     logger = get_run_logger()
+    logger.info(f"Starting workflow on system: {socket.gethostname()}")
 
     # Set config
     db_path_and_file = str(Path(data_path) / db_file)
@@ -115,6 +117,17 @@ def process_papers(
         lakefs_url=lakefs_url,
         lakefs_repo=lakefs_repo,
         lakefs_path=lakefs_path).wait()
+
+    # Upload logfile to lakeFS
+    logger.info("Upload logfile to lakeFS...")
+    upload_to_lakefs.submit(
+        path_and_file=logfile_name,
+        lakefs_url=lakefs_url,
+        lakefs_repo=lakefs_repo,
+        lakefs_path=lakefs_path).wait()
+
+    logger.info("Workflow complete.")
+
 
 
 if __name__ == "__main__":
