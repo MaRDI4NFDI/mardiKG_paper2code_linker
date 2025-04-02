@@ -3,3 +3,4 @@ secrets.conf
 /data/results__OLD.json
 /data/results.zip
 /data/results.db
+/workflow.log.txt
