@@ -4,7 +4,8 @@ from typing import Optional, List, Dict, Union
 import boto3
 import lakefs_sdk
 from botocore.config import Config
-from lakefs_sdk import Configuration, models, HealthCheckApi, ObjectsApi, AuthApi, CommitsApi
+from lakefs_sdk import Configuration, models, HealthCheckApi, ObjectsApi, AuthApi, CommitsApi, \
+    ApiException
 from typing import List
 from minio import Minio
 import os
@@ -196,8 +197,13 @@ class LakeClient:
                 branch=branch,
                 commit_creation=commit
             )
-            # print(f"Commit successful: {response.id}")
             return response.id
+        except ApiException as e:
+            if e.status == 400 and "commit: no changes" in e.body:
+                print("[commit_to_lakefs] No changes to commit.")
+                return None
+            print(f"[commit_to_lakefs] API Error: {e}")
+            raise
         except Exception as e:
             print(f"[commit_to_lakefs] Error: {e}")
             raise

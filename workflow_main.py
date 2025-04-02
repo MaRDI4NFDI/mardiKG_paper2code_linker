@@ -8,9 +8,15 @@ from tasks.upload import upload_to_lakefs
 from pathlib import Path
 import logging
 
+LOG_FILE = "process_papers.log"
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[
+        logging.StreamHandler(),  # still print to console
+        logging.FileHandler(LOG_FILE, mode='a', encoding='utf-8')
+    ]
 )
 
 # BEFORE THIS WORKFLOW CAN BE DEPLOYED TO A PREFECT SERVER:
@@ -108,7 +114,7 @@ def process_papers(
         path_and_file=str(db_path_and_file),
         lakefs_url=lakefs_url,
         lakefs_repo=lakefs_repo,
-        lakefs_path_and_file=lakefs_path).wait()
+        lakefs_path=lakefs_path).wait()
 
 
 if __name__ == "__main__":

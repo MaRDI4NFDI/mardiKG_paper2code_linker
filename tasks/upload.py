@@ -46,4 +46,8 @@ def upload_to_lakefs( path_and_file: str,
 
     # Commit
     commit_id = client.commit_to_lakefs(repo=lakefs_repo, branch="main", msg="Upload new DB version", metadata={"source": "mardiKG_paper2code_linker.tasks.upload_db"})
-    logger.info(f"Commited with ID: {commit_id}")
+    if commit_id:
+        logger.info(f"Commited with ID: {commit_id}")
+    else:
+        logger.info(f"Not commited - no change detected in DB.")
+
