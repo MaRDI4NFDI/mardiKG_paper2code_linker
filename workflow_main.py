@@ -1,3 +1,4 @@
+import getpass
 import socket
 
 from prefect import flow, get_run_logger
@@ -61,7 +62,7 @@ def process_papers(
     logfile_name = "workflow.log.txt"
     configure_prefect_logging_to_file( logfile_name )
     logger = get_run_logger()
-    logger.info(f"Starting workflow on system: {socket.gethostname()}")
+    logger.info(f"Starting workflow on system: {socket.gethostname()} by user: {getpass.getuser()}")
 
     # Set config
     db_path_and_file = str(Path(data_path) / db_file)
