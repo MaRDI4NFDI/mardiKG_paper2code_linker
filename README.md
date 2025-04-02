@@ -5,8 +5,8 @@ the [MaRDI Knowledge Graph (KG)](https://portal.mardi4nfdi.de/wiki/Service:MaRDI
 from [PapersWithCode](https://paperswithcode.com/about) and updates MaRDI KG items using 
 the [MaRDI Client](https://github.com/MaRDI4NFDI/mardiclient). 
 
-It is implemented as a Prefect workflow and can be run standalone, on a local Prefect server 
-or on the [Prefect Cloud](https://docs.prefect.io/v3/get-started/index).
+It is implemented as a [Prefect](https://docs.prefect.io/v3/get-started/index) workflow and can be run standalone, on a local Prefect server 
+or on the [Prefect Cloud](https://www.prefect.io/cloud).
 
 ### Main Workflow
 
@@ -16,9 +16,11 @@ or on the [Prefect Cloud](https://docs.prefect.io/v3/get-started/index).
 
 ---
 
-## Requirements
+## Installation
 
-- Install the dependencies with `pip install -r requirements.txt`
+- Clone the Git repository
+- Create a virtual environment
+- Install the dependencies: `pip install -r requirements.txt`
 - Optional: [LakeFS](https://lakefs.io/) instance that stores the local database between runs
 
 ## Running Locally (Standalone)
