@@ -33,7 +33,7 @@ def link_repos_to_mardi_kg(db_path: str = "./data/results.db", max_workers=10, s
         return
 
     # Initialize MaRDI KG client
-    mc = MardiClient(user=creds["user"], password=creds["password"], login_with_bot=True)
+    mc = MardiClient(user=creds["mardi-kg-user"], password=creds["mardi-kg-password"], login_with_bot=True)
 
     # Get items to be updated from the database
     hits = _load_hits(db_path)
@@ -119,7 +119,7 @@ def _read_credentials(path: str) -> Optional[Dict[str, str]]:
                 line.strip().split("=", 1)
                 for line in f if "=" in line
             )
-        if "user" not in creds or "password" not in creds:
+        if "mardi-kg-user" not in creds or "mardi-kg-password" not in creds:
             return None
         return creds
     except Exception:
@@ -135,7 +135,7 @@ def _read_credentials_from_prefect() -> Optional[Dict[str, str]]:
     try:
         user = Secret.load("mardi-kg-user").get()
         password = Secret.load("mardi-kg-password").get()
-        return {"user": user, "password": password}
+        return {"mardi-kg-user": user, "mardi-kg-password": password}
     except Exception as e:
         return None
 
