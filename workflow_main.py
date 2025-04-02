@@ -5,7 +5,7 @@ from prefect import flow, get_run_logger
 
 from tasks.process_pwc_dump import process_pwc_dump
 from tasks.storage import init_db
-from tasks.download import download_and_unzip_links_file, download_db
+from tasks.download import download_and_unzip_links_file, download_db_lakefs
 from tasks.mardi_kg_updates import link_repos_to_mardi_kg
 from tasks.upload import upload_to_lakefs
 from pathlib import Path
@@ -68,7 +68,7 @@ def process_papers(
     # Download database file if it does not exist
     if not (Path(DATA_PATH) / DB_FILE).exists():
         logger.warning(f"Database file not found at {db_path_and_file}, trying to download...")
-        download_db.submit(
+        download_db_lakefs.submit(
             db_path_and_file=str(db_path_and_file),
             lakefs_url=lakefs_url,
             lakefs_repo=lakefs_repo,

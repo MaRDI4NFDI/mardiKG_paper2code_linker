@@ -1,14 +1,17 @@
 import gzip
 import shutil
 import os
-from pathlib import Path
 
 import requests
 from datetime import datetime
 from prefect import task, get_run_logger
+from pathlib import Path
 
 from utils.LakeClient import LakeClient
 from utils.secrets_helper import read_credentials
+
+from utils.IPFSClient import IPFSClient
+
 
 
 @task
@@ -55,7 +58,7 @@ def download_and_unzip_links_file(
 
 
 @task
-def download_db( db_path_and_file, lakefs_url: str, lakefs_repo: str, lakefs_path_and_file:str, secrets_path: str = "secrets.conf" ) -> None:
+def download_db_lakefs(db_path_and_file, lakefs_url: str, lakefs_repo: str, lakefs_path_and_file:str, secrets_path: str = "secrets.conf") -> None:
     """
     Downloads the database file from a previous run of the flow from a lakeFS repository and
     saves it locally.
@@ -100,3 +103,46 @@ def download_db( db_path_and_file, lakefs_url: str, lakefs_repo: str, lakefs_pat
         f.write(content)
 
     logger.info("Successfully saved DB file to '%s'", db_path)
+
+
+@task
+def download_db_ipfs(
+    db_path_and_file: str,
+    ipfs_api_url: str,
+    mfs_path: str,
+    secrets_path: str = "secrets.conf"
+) -> None:
+    """
+    Downloads a database file from an IPFS node using an MFS tag and saves it locally.
+
+    This function looks up the tagged file (using MFS) and downloads it using the IPFS HTTP API.
+    IPFS credentials are retrieved from a secrets file.
+
+    Args:
+        db_path_and_file (str): The local file path (including filename) where the DB should be saved.
+        ipfs_api_url (str): The base IPFS API URL (e.g. "https://ipfs-admin.portal.mardi4nfdi.de").
+        mfs_path (str): The full MFS path to the file (e.g. "/tags/mydb-latest.db").
+        secrets_path (str, optional): Path to the IPFS secrets config file. Defaults to "secrets.conf".
+
+    Raises:
+        Exception: If download fails for any reason.
+    """
+    logger = get_run_logger()
+
+    creds = read_credentials("ipfs", secrets_path)
+    if not creds:
+        logger.error("No valid credentials found. Please check '%s'", secrets_path)
+        return
+
+    client = IPFSClient(
+        _host=ipfs_api_url,
+        _user=creds["user"],
+        _password=creds["password"]
+    )
+
+    success = client.download_by_tag(mfs_path, db_path_and_file)
+    if not success:
+        logger.error("Failed to download DB from IPFS path '%s'", mfs_path)
+        raise Exception(f"Failed to download DB from IPFS path '{mfs_path}'")
+
+    logger.info("Successfully saved DB file to '%s'", db_path_and_file)
