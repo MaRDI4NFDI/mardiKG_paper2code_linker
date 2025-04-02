@@ -9,8 +9,6 @@ if __name__ == "__main__":
     process_papers.serve(
         name="process_papers",
         parameters={
-            "data_path": "./data",
-            "db_file": "results.db",
             "links_file_url": "https://production-media.paperswithcode.com/about/links-between-papers-and-code.json.gz",
             "batch_size": 1000,
             "max_workers": 50,

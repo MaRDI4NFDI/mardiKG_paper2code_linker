@@ -13,6 +13,11 @@ import logging
 
 from utils.logger_helper import configure_prefect_logging_to_file
 
+# Set paths
+DATA_PATH="./data" # Path where intermediate data and the database file should be stored locally.
+DB_FILE="results.db" # Name of the SQLite database file used to store intermediate results.
+
+# Set basic logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
@@ -27,8 +32,6 @@ logging.basicConfig(
 
 @flow
 def process_papers(
-    data_path: str,
-    db_file: str,
     links_file_url: str,
     batch_size: int,
     max_workers: int,
@@ -48,8 +51,6 @@ def process_papers(
       - Updates the found items in the MaRDI Knowledge Graph
 
     Args:
-        data_path (str): Path where intermediate data and the database file should be stored locally.
-        db_file (str): Name of the SQLite database file used to store intermediate results.
         links_file_url (str): URL to the compressed PapersWithCode links JSON file.
         batch_size (int): Number of records to process per batch during dump parsing.
         max_workers (int): Maximum number of parallel workers used during processing.
@@ -65,14 +66,14 @@ def process_papers(
     logger.info(f"Starting workflow on system: {socket.gethostname()} by user: {getpass.getuser()}")
 
     # Set config
-    db_path_and_file = str(Path(data_path) / db_file)
+    db_path_and_file = str(Path(DATA_PATH) / DB_FILE)
 
     # Check whether data path exists
-    Path(data_path).mkdir(parents=True, exist_ok=True)
-    logger.info("Ensured data directory exists at: %s", data_path)
+    Path(DATA_PATH).mkdir(parents=True, exist_ok=True)
+    logger.info("Ensured data directory exists at: %s", DATA_PATH)
 
     # Download database file if it does not exist
-    if not (Path(data_path) / db_file).exists():
+    if not (Path(DATA_PATH) / DB_FILE).exists():
         logger.warning(f"Database file not found at {db_path_and_file}, trying to download...")
         download_db.submit(
             db_path_and_file=str(db_path_and_file),
@@ -133,8 +134,6 @@ def process_papers(
 
 if __name__ == "__main__":
     process_papers(
-        data_path="./data",
-        db_file="results.db",
         links_file_url="https://production-media.paperswithcode.com/about/links-between-papers-and-code.json.gz",
         batch_size=1000,
         max_workers=50,
