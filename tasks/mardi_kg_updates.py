@@ -9,7 +9,7 @@ from wikibaseintegrator import datatypes
 from wikibaseintegrator.models import References, Reference
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
-from utils.secrets_helper import read_mardikg_credentials
+from utils.secrets_helper import read_credentials
 
 
 @task
@@ -28,7 +28,7 @@ def link_repos_to_mardi_kg(db_path: str = "./data/results.db", max_workers=10, s
     logger = get_run_logger()
 
     # Read username/password from file
-    creds = read_mardikg_credentials(secrets_path)
+    creds = read_credentials("mardi-kg", secrets_path)
     if not creds:
         logger.error("No valid credentials found. Please check '%s'", secrets_path)
         return

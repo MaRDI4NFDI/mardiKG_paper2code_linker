@@ -1,6 +1,8 @@
-from utils.secrets_helper import read_lakefs_credentials
 from utils.LakeClient import LakeClient
 from prefect import task, get_run_logger
+
+from utils.secrets_helper import read_credentials
+
 
 @task
 def upload_to_lakefs( path_and_file: str,
@@ -29,7 +31,7 @@ def upload_to_lakefs( path_and_file: str,
 
     logger = get_run_logger()
 
-    creds = read_lakefs_credentials(secrets_path)
+    creds = read_credentials("lakefs", secrets_path)
     if not creds:
         logger.error("No valid credentials found. Please check '%s'", secrets_path)
         return
