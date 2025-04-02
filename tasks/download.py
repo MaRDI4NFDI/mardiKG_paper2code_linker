@@ -9,7 +9,7 @@ from datetime import datetime
 from prefect import task, get_run_logger
 
 from utils.LakeClient import LakeClient
-from utils.prefect_helper import read_lakefs_credentials_from_prefect
+from utils.secrets_helper import read_lakefs_credentials
 
 
 @task
@@ -78,7 +78,7 @@ def download_db( db_path_and_file, lakefs_url: str, lakefs_repo: str, lakefs_pat
     """
     logger = get_run_logger()
 
-    creds = _read_lakefs_credentials(secrets_path)
+    creds = read_lakefs_credentials(secrets_path)
     if not creds:
         logger.error("No valid credentials found. Please check '%s'", secrets_path)
         return
@@ -101,35 +101,3 @@ def download_db( db_path_and_file, lakefs_url: str, lakefs_repo: str, lakefs_pat
         f.write(content)
 
     logger.info("Successfully saved DB file to '%s'", db_path)
-
-
-def _read_lakefs_credentials(path: str = "secrets.conf") -> Optional[Dict[str, str]]:
-    """Read user credentials either from prefect server (lakefs-user / lakefs-password)
-    or from a secrets file.
-
-    Args:
-        path (str): Path to the secrets file.
-
-    Returns:
-        Optional[Dict[str, str]]: Dictionary with 'user' and 'password' or None if invalid/missing.
-    """
-    # Try first the built-in mechanism
-    secrets = read_lakefs_credentials_from_prefect()
-    if secrets is not None:
-        return secrets
-
-    # Try to get from file
-    try:
-        with open(path, encoding="utf-8") as f:
-            creds = {}
-            for line in f:
-                if "=" in line:
-                    key, value = line.strip().split("=", 1)
-                    creds[key.strip()] = value.strip()
-
-        if "lakefs-user" not in creds or "lakefs-password" not in creds:
-            return None
-
-        return creds
-    except Exception:
-        return None

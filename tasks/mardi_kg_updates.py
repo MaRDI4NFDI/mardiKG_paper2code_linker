@@ -8,7 +8,8 @@ from mardiclient import MardiClient, MardiItem
 from wikibaseintegrator import datatypes
 from wikibaseintegrator.models import References, Reference
 from wikibaseintegrator.wbi_enums import ActionIfExists
-from prefect.blocks.system import Secret
+
+from utils.secrets_helper import read_mardikg_credentials
 
 
 @task
@@ -27,13 +28,13 @@ def link_repos_to_mardi_kg(db_path: str = "./data/results.db", max_workers=10, s
     logger = get_run_logger()
 
     # Read username/password from file
-    creds = _read_credentials(secrets_path)
+    creds = read_mardikg_credentials(secrets_path)
     if not creds:
         logger.error("No valid credentials found. Please check '%s'", secrets_path)
         return
 
     # Initialize MaRDI KG client
-    mc = MardiClient(user=creds["mardi-kg-user"], password=creds["mardi-kg-password"], login_with_bot=True)
+    mc = MardiClient(user=creds["user"], password=creds["password"], login_with_bot=True)
 
     # Get items to be updated from the database
     hits = _load_hits(db_path)
@@ -94,50 +95,6 @@ def _process_hit(hit: Dict, db_path: str, mc: MardiClient) -> None:
         _mark_updated(db_path, hit["arxiv_id"])
     else:
         logger.warning(f"Skipping due to missing fields: {hit}")
-
-
-
-def _read_credentials(path: str) -> Optional[Dict[str, str]]:
-    """Read user credentials either from prefect server (mardi-kg-user / mardi-kg-password)
-    or from a secrets file.
-
-    Args:
-        path (str): Path to the secrets file.
-
-    Returns:
-        Optional[Dict[str, str]]: Dictionary with 'user' and 'password' or None if invalid/missing.
-    """
-    # Try first the built-in mechanism
-    secrets = _read_credentials_from_prefect()
-    if secrets is not None:
-        return secrets
-
-    # Try to get from file
-    try:
-        with open(path) as f:
-            creds = dict(
-                line.strip().split("=", 1)
-                for line in f if "=" in line
-            )
-        if "mardi-kg-user" not in creds or "mardi-kg-password" not in creds:
-            return None
-        return creds
-    except Exception:
-        return None
-
-
-def _read_credentials_from_prefect() -> Optional[Dict[str, str]]:
-    """Read credentials using Prefect's block system.
-
-    Returns:
-        Optional[Dict[str, str]]: Dictionary with 'user' and 'password', or None if secrets could not be loaded.
-    """
-    try:
-        user = Secret.load("mardi-kg-user").get()
-        password = Secret.load("mardi-kg-password").get()
-        return {"mardi-kg-user": user, "mardi-kg-password": password}
-    except Exception as e:
-        return None
 
 
 def _load_hits(db_path: str) -> List[Dict]:
