@@ -1,6 +1,9 @@
+# For execution on a Prefect server the secrets have to be set - see README.MD for details.
+
 # Run this for CLOUD execution:
 #   prefect cloud login
-# Once deployed, add a schedule:
+
+# To add a schedule:
 #   * Go to "Deployments"
 #   * Click on the workflow name
 #   * Click on "+ Schedule" (top right corner)

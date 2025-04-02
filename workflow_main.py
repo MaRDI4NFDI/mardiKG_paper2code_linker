@@ -23,13 +23,6 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
 
-# BEFORE THIS WORKFLOW CAN BE DEPLOYED TO A PREFECT SERVER:
-#  - Create block secrets
-#      - mardi-kg-password
-#      - mardi-kg-user
-#      - lakefs-user
-#      - lakefs-password
-
 @flow
 def process_papers(
     links_file_url: str,
@@ -40,7 +33,7 @@ def process_papers(
     lakefs_path_and_file: str
 ):
     """
-    Orchestrates the workflow for updating publication items at the MaRDI Knoledge Graph with
+    Orchestrates the workflow for updating publication items at the MaRDI Knowledge Graph with
     information of existing code repositories - which is taken from the paperswithcode database.
 
     This flow:

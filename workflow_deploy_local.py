@@ -1,3 +1,5 @@
+# For execution on a Prefect server the secrets have to be set - see README.MD for details.
+
 # Run this for LOCAL execution:
 #   prefect config unset PREFECT_API_URL
 #   prefect config set PREFECT_API_URL=http://127.0.0.1:4200/api
