@@ -4,7 +4,7 @@ from typing import Optional, List, Dict, Union
 import boto3
 import lakefs_sdk
 from botocore.config import Config
-from lakefs_sdk import Configuration, models, HealthCheckApi, ObjectsApi, AuthApi
+from lakefs_sdk import Configuration, models, HealthCheckApi, ObjectsApi, AuthApi, CommitsApi
 from typing import List
 from minio import Minio
 import os
@@ -191,8 +191,12 @@ class LakeClient:
         """
         try:
             commit = models.CommitCreation(message=msg, metadata=metadata)
-            response = self.commits_api.commit(repository=repo, branch=branch, commit_creation=commit)
-            print(f"Commit successful: {response.id}")
+            response = CommitsApi(self.lakefs_api_client).commit(
+                repository=repo,
+                branch=branch,
+                commit_creation=commit
+            )
+            # print(f"Commit successful: {response.id}")
             return response.id
         except Exception as e:
             print(f"[commit_to_lakefs] Error: {e}")
@@ -239,8 +243,8 @@ if __name__ == "__main__":
 
     # --- Setup ---
     host_url = "https://lake-bioinfmed.zib.de"
-    username = "x"
-    password = "x"
+    username = ""
+    password = ""
 
     client = LakeClient(host_url, username, password)
     repo = "sandbox"
