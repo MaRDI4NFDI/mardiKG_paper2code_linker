@@ -4,7 +4,7 @@ from tasks.process_pwc_dump import process_pwc_dump
 from tasks.storage import init_db
 from tasks.download import download_and_unzip_links_file, download_db
 from tasks.mardi_kg_updates import link_repos_to_mardi_kg
-from tasks.upload_db import upload_db_to_lakefs
+from tasks.upload import upload_to_lakefs
 from pathlib import Path
 import logging
 
@@ -98,13 +98,17 @@ def process_papers(
 
     # Upload new db file to lakeFS
     logger.info("Upload new DB file to lakeFS...")
-    upload_db_to_lakefs.submit(
+
+    # Extract only the path part (without the file name) for the destination in lakeFS
+    lakefs_path = Path(lakefs_path_and_file).parent.as_posix()
+    if lakefs_path == ".":
+        lakefs_path = ""  # upload to root of the repo
+
+    upload_to_lakefs.submit(
         db_path_and_file=str(db_path_and_file),
         lakefs_url=lakefs_url,
         lakefs_repo=lakefs_repo,
-        lakefs_path_and_file=lakefs_path_and_file).wait()
-
-
+        lakefs_path_and_file=lakefs_path).wait()
 
 
 if __name__ == "__main__":
