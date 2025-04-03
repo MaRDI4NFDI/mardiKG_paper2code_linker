@@ -2,8 +2,8 @@ import logging
 import sqlite3
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Dict, Optional
-from prefect import task, get_run_logger, flow
+from typing import List, Dict
+from prefect import task, get_run_logger
 from mardiclient import MardiClient, MardiItem
 from wikibaseintegrator import datatypes
 from wikibaseintegrator.models import References, Reference
@@ -47,7 +47,7 @@ def link_repos_to_mardi_kg(db_path: str = "./data/results.db", max_workers=10, s
 
     with ThreadPoolExecutor(max_workers) as executor:
         future_to_hit = {
-            executor.submit(_process_hit.fn, hit, db_path, mc): hit
+            executor.submit(_process_hit, hit, db_path, mc): hit
             for hit in hits
         }
 
