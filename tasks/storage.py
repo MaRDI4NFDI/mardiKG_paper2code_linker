@@ -1,3 +1,4 @@
+import datetime
 import sqlite3
 from typing import List, Dict
 from prefect import task
@@ -24,7 +25,9 @@ def init_db(path_and_file: str = "data/results.db") -> None:
             mentioned_in_github BOOLEAN,
             pwc_page TEXT,
             snippet TEXT,
-            updated_in_mardi_kg BOOLEAN DEFAULT 0
+            updated_in_mardi_kg BOOLEAN DEFAULT 0,
+            timestamp_added_to_db TEXT,
+            timestamp_added_to_mardikg TEXT            
         )
     """)
 
@@ -45,13 +48,17 @@ def insert_hits(hits: List[Dict], path_and_file: str = "data/results.db") -> Non
 
     for hit in hits:
         hit.setdefault("updated_in_mardi_kg", 0)
+        hit["timestamp_added_to_db"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        hit.setdefault("timestamp_added_to_mardikg", None)
+
         cur.execute("""
-            INSERT OR REPLACE INTO hits VALUES (
-                :arxiv_id, :qid, :title, :repo_url, :is_official,
-                :mentioned_in_paper, :mentioned_in_github, :pwc_page,
-                :snippet, :updated_in_mardi_kg
-            )
-        """, hit)
+                INSERT OR REPLACE INTO hits VALUES (
+                    :arxiv_id, :qid, :title, :repo_url, :is_official,
+                    :mentioned_in_paper, :mentioned_in_github, :pwc_page,
+                    :snippet, :updated_in_mardi_kg,
+                    :timestamp_added_to_db, :timestamp_added_to_mardikg
+                )
+            """, hit)
 
     conn.commit()
     conn.close()

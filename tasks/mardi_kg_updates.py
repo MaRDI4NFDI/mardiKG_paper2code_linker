@@ -1,3 +1,4 @@
+import datetime
 import logging
 import sqlite3
 import time
@@ -129,7 +130,15 @@ def _mark_updated(db_path: str, arxiv_id: str) -> None:
     try:
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
-        cur.execute("UPDATE hits SET updated_in_mardi_kg = 1 WHERE arxiv_id = ?", (arxiv_id,))
+        cur.execute(
+            """
+            UPDATE hits
+            SET updated_in_mardi_kg = 1,
+                timestamp_added_to_mardikg = ?
+            WHERE arxiv_id = ?
+            """,
+            (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), arxiv_id)
+        )
         conn.commit()
         conn.close()
     except Exception as e:
