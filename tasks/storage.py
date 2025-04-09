@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import sqlite3
 from typing import List, Dict
 from prefect import task
