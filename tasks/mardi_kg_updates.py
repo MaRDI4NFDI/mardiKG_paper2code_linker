@@ -41,6 +41,10 @@ def link_repos_to_mardi_kg(db_path: str = "./data/results.db", max_workers=10, s
     hits = _load_hits(db_path)
     logger.info("Loaded %d items pending MaRDI update from %s", len(hits), db_path)
 
+    # Show list of QIDs that will be updated
+    hits_qids = ", ".join(hit.get("qid", "?") for hit in hits)
+    logger.info("QIDs to be updated: %s", hits_qids)
+
     # Process items: for each item, add repo information to KG item
     # (running tasks concurrently using Prefect-native mapping)
 
