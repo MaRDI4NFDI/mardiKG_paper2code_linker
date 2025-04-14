@@ -1,7 +1,7 @@
-import datetime
 import logging
 import sqlite3
 import time
+from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Dict
 from prefect import task, get_run_logger
