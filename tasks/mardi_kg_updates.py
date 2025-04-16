@@ -4,13 +4,13 @@ import time
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Dict
+
+from mardiportal.workflowtools import read_credentials
 from prefect import task, get_run_logger
 from mardiclient import MardiClient, MardiItem
 from wikibaseintegrator import datatypes
 from wikibaseintegrator.models import References, Reference
 from wikibaseintegrator.wbi_enums import ActionIfExists
-
-from utils.secrets_helper import read_credentials
 
 
 @task

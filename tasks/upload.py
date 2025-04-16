@@ -1,8 +1,5 @@
-from utils.LakeClient import LakeClient
+from mardiportal.workflowtools import read_credentials, LakeClient, IPFSClient
 from prefect import task, get_run_logger
-
-from utils.secrets_helper import read_credentials
-from utils.IPFSClient import IPFSClient
 
 @task
 def upload_to_lakefs( path_and_file: str,

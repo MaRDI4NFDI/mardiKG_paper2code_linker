@@ -1,9 +1,7 @@
 from mardiclient import MardiClient, MardiItem
+from mardiportal.workflowtools import read_credentials
 from wikibaseintegrator import datatypes
 from wikibaseintegrator.wbi_enums import ActionIfExists
-
-from utils.secrets_helper import read_credentials
-
 
 def change_kg_item(mc: MardiClient, dataset_QID: str, publication_QID: str) -> None:
     """

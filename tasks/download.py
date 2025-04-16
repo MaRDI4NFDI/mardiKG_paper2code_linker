@@ -7,11 +7,7 @@ from datetime import datetime
 from prefect import task, get_run_logger
 from pathlib import Path
 
-from utils.LakeClient import LakeClient
-from utils.secrets_helper import read_credentials
-
-from utils.IPFSClient import IPFSClient
-
+from mardiportal.workflowtools import LakeClient, read_credentials, IPFSClient
 
 
 @task

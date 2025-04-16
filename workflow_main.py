@@ -1,3 +1,6 @@
+# If you are developing locally, make sure to be on the most current version of the tools lib:
+# -> pip install -e ../mardiportal-workflowtools
+
 import getpass
 import socket
 

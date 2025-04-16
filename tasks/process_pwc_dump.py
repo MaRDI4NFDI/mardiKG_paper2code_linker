@@ -1,6 +1,5 @@
 from pathlib import Path
 from typing import Set
-from collections import Counter
 from prefect import task, get_run_logger
 from tasks.mardi_kg_query import query_mardi_kg
 from tasks.storage import insert_hits
