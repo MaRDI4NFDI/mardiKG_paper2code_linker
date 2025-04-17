@@ -1,5 +1,6 @@
 secrets.conf
 /data/results.db
+/data/links__*
 /workflow.log.txt
 /.idea/dataSources.xml
 /.idea/sqldialects.xml
