@@ -15,7 +15,7 @@ if __name__ == "__main__":
         source="https://github.com/MaRDI4NFDI/mardiKG_paper2code_linker.git",
         entrypoint="workflow_main.py:process_papers",
     ).deploy(
-        name="process_papers",
+        name="paper2code_linker",
         work_pool_name="CloudWorkerPool",
         parameters={
             "links_file_url": "https://production-media.paperswithcode.com/about/links-between-papers-and-code.json.gz",
@@ -31,7 +31,8 @@ if __name__ == "__main__":
             "ijson",
             "lakefs-sdk",
             "minio",
-            "git+https://github.com/MaRDI4NFDI/mardiclient.git"
+            "git+https://github.com/MaRDI4NFDI/mardiclient.git",
+            "git+https://github.com/MaRDI4NFDI/mardiportal-workflowtools.git",
         ]},
     )
 
