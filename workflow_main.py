@@ -114,7 +114,9 @@ def process_papers(
         path_and_file=str(db_path_and_file),
         lakefs_url=lakefs_url,
         lakefs_repo=lakefs_repo,
-        lakefs_path=lakefs_path).wait()
+        lakefs_path=lakefs_path,
+        msg="Upload new DB version"
+    ).wait()
 
     # Upload logfile to lakeFS
     logger.info("Upload logfile to lakeFS...")
@@ -122,7 +124,9 @@ def process_papers(
         path_and_file=logfile_name,
         lakefs_url=lakefs_url,
         lakefs_repo=lakefs_repo,
-        lakefs_path=lakefs_path).wait()
+        lakefs_path=lakefs_path,
+        msg="Upload logs"
+    ).wait()
 
     logger.info("Workflow complete.")
 
