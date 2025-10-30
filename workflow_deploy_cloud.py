@@ -16,7 +16,7 @@ if __name__ == "__main__":
         entrypoint="workflow_main.py:process_papers",
     ).deploy(
         name="paper2code_linker",
-        work_pool_name="CloudWorkerPool",
+        work_pool_name="K8WorkerPool",
         parameters={
             "links_file_url": "https://production-media.paperswithcode.com/about/links-between-papers-and-code.json.gz",
             "batch_size": 1000,

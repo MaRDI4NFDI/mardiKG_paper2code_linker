@@ -62,6 +62,23 @@ when you installed the dependencies._
 - Go to the web ui -> _Deployments_ -> Run the workflow
 
 
+## Running on a self-hosted Prefect Server
+
+- Set environment variables
+   - `prefect config unset PREFECT_API_KEY`
+   - `prefect config set PREFECT_API_URL="http://your-server/api"`
+   - `$env:PREFECT_API_AUTH_STRING="admin:supersecret"`
+- Check it is working
+   - `prefect deployment ls`
+- Create work-pool 
+   - `prefect work-pool create K8WorkerPool --type kubernetes`
+   - Hint: The Prefect Work Pool is not a resource running in Kubernetes; it is a metadata object on the Prefect Server.
+   - Assumption: there is a Kubernetes pod running `prefect worker start --pool "K8WorkerPool"`
+
+#### Deploy and Run 
+- Run `python .\workflow_deploy_cloud.py`
+
+
 ## Secrets
 You need to have these key/value pairs, either in a local 
 _secrets.config_ file (for local execution) or as Block secrets at the 
