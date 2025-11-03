@@ -76,7 +76,15 @@ when you installed the dependencies._
    - Assumption: there is a Kubernetes pod running `prefect worker start --pool "K8WorkerPool"`
 
 #### Deploy and Run 
-- Run `python .\workflow_deploy_cloud.py`
+- Build and Deploy Docker (assuming ghcr.io/timconrad is the target)
+   - Build local image: `DOCKER_BUILDKIT=1 sudo docker build --no-cache -t ghcr.io/timconrad/mardikg_paper2code_linker:latest .`
+   - Login to GitHub: `echo "<YOUR_GITHUB_PAT>" | sudo docker login ghcr.io -u <YOUR_GITHUB_USERNAME> --password-stdin`
+   - Push: `sudo docker push ghcr.io/timconrad/mardikg_paper2code_linker:latest`
+   - Make public: `https://github.com/users/timconrad/packages/container/mardikg_paper2code_linker/settings`
+   - Check: `https://github.com/timconrad?tab=packages`
+
+
+- Run `python .\workflow_deploy_kubernetes.py`
 
 
 ## Secrets
