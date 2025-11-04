@@ -58,7 +58,7 @@ when you installed the dependencies._
 - Create secrets at the Prefect server using [Block secrets](https://docs.prefect.io/v3/develop/blocks)
 
 #### Deploy and Run 
-- Run `python workflow_deploy_cloud.py`
+- Deploy: `python workflow_deploy_cloud.py`
 - Go to the web ui -> _Deployments_ -> Run the workflow
 
 
@@ -79,7 +79,8 @@ when you installed the dependencies._
    - `prefect deployment ls`
 
 #### Deploy and Run 
-- Run `python .\workflow_deploy_kubernetes.py`
+- Deploy: `python .\workflow_deploy_kubernetes.py`
+- Run: Go to the web ui -> _Deployments_ -> Run the workflow
 
 
 ## Secrets
