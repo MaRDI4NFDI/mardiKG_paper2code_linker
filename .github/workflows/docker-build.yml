@@ -34,8 +34,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ghcr.io/timconrad/mardikg_paper2code_linker:latest
-            ghcr.io/timconrad/mardikg_paper2code_linker:${{ github.sha }}
+            ghcr.io/mardi4nfdi/mardikg_paper2code_linker:latest
+            ghcr.io/mardi4nfdi/mardikg_paper2code_linker:${{ github.sha }}
 
       - name: Verify pushed image
-        run: docker pull ghcr.io/timconrad/mardikg_paper2code_linker:latest
+        run: docker pull ghcr.io/mardi4nfdi/mardikg_paper2code_linker:latest
