@@ -59,7 +59,7 @@ def process_papers(
     logfile_name = "workflow.log.txt"
     configure_prefect_logging_to_file( logfile_name )
     logger = get_run_logger()
-    logger.info(f"Starting workflow on system: {socket.gethostname()} by user: {getpass.getuser()}")
+    logger.info(f"Starting workflow 'mardiKG_paper2code_linker' on system: {socket.gethostname()} by user: {getpass.getuser()}")
 
     # Set config
     db_path_and_file = str(Path(DATA_PATH) / DB_FILE)

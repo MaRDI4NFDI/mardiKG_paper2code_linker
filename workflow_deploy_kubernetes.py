@@ -16,6 +16,6 @@ if __name__ == "__main__":
             "lakefs_path_and_file": "mardiKG_paper2code_linker/results.db"
         },
         job_variables={
-            "image": "ghcr.io/timconrad/mardikg_paper2code_linker:latest",
+            "image": "ghcr.io/mardi4nfdi/mardikg_paper2code_linker:latest",
         },
     )
