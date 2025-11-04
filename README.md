@@ -64,26 +64,21 @@ when you installed the dependencies._
 
 ## Running on a self-hosted Prefect Server
 
+#### Prepare Your Prefect Server Environment (ONLY ONCE)
+- Create work-pool 
+   - `prefect work-pool create K8WorkerPool --type kubernetes`
+   - Hint: The Prefect Work Pool is not a resource running in Kubernetes; it is a metadata object on the Prefect Server.
+   - Assumption: there is a Kubernetes pod running `prefect worker start --pool "K8WorkerPool"`
+
+#### Prepare Your Local Environment (ONLY ONCE)
 - Set environment variables
    - `prefect config unset PREFECT_API_KEY`
    - `prefect config set PREFECT_API_URL="http://your-server/api"`
    - `$env:PREFECT_API_AUTH_STRING="admin:supersecret"`
 - Check it is working
    - `prefect deployment ls`
-- Create work-pool 
-   - `prefect work-pool create K8WorkerPool --type kubernetes`
-   - Hint: The Prefect Work Pool is not a resource running in Kubernetes; it is a metadata object on the Prefect Server.
-   - Assumption: there is a Kubernetes pod running `prefect worker start --pool "K8WorkerPool"`
 
 #### Deploy and Run 
-- Build and Deploy Docker (assuming ghcr.io/timconrad is the target)
-   - Build local image: `DOCKER_BUILDKIT=1 sudo docker build --no-cache -t ghcr.io/timconrad/mardikg_paper2code_linker:latest .`
-   - Login to GitHub: `echo "<YOUR_GITHUB_PAT>" | sudo docker login ghcr.io -u <YOUR_GITHUB_USERNAME> --password-stdin`
-   - Push: `sudo docker push ghcr.io/timconrad/mardikg_paper2code_linker:latest`
-   - Make public: `https://github.com/users/timconrad/packages/container/mardikg_paper2code_linker/settings`
-   - Check: `https://github.com/timconrad?tab=packages`
-
-
 - Run `python .\workflow_deploy_kubernetes.py`
 
 
